@@ -1,0 +1,21 @@
+# --- 系统总纲 脚手架 (superpowers 前置) ---
+# 版本与依赖
+node_modules/
+venv/
+.env
+.env.local
+
+# 编辑器 / 系统
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# superpowers worktree 隔离目录(必须忽略,防误提交)
+.worktrees/
+worktrees/
+
+# 构建产物 / 日志
+dist/
+build/
+*.log
