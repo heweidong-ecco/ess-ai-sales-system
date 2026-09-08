@@ -177,5 +177,14 @@ class TestIndexSearch(unittest.TestCase):
         self.assertEqual(ft.search_cards(base, "qqqnotexist"), [])
 
 
+class TestEndToEnd(unittest.TestCase):
+    def test_three_steps_full(self):
+        base = make_tree()
+        p = ft.create_card(base, "product")           # step1 new:content/facts/product/F-PRODUCT-001.md
+        p.write_text(VALID, encoding="utf-8")         # step2 填(zh/en/source/reviewer/status)
+        self.assertEqual(ft.validate_card(base, p), [])   # step3a 校验通过
+        self.assertIn(p.name, ft.build_index(base))       # step3b 入索引,可检索
+
+
 if __name__ == "__main__":
     unittest.main()
