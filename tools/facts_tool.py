@@ -6,6 +6,7 @@ CARD_CLASSES = {"product", "advantage", "certification", "case", "company", "pri
 STATUSES = {"draft", "approved", "obsolete"}
 REQUIRED = ["id", "class", "title", "status", "source"]
 _ID_RE = re.compile(r"^F-([A-Z]+)-(\d{3})$")
+_ID_RE_ANY = re.compile(r"^F-([A-Z]+)-(\d+)$")
 _IGNORED = {"_template.md", "_index.md"}
 
 
@@ -48,9 +49,12 @@ def next_id(base: Path, cls: str) -> str:
     cls_upper = cls.upper()
     hi = 0
     for p in list_cards(base):
-        m = _ID_RE.match(p.stem)
+        m = _ID_RE_ANY.match(p.stem)
         if m and m.group(1) == cls_upper:
             hi = max(hi, int(m.group(2)))
+    if hi >= 999:
+        raise RuntimeError(
+            f"类别 {cls} 编号达上限 F-{cls_upper}-999,需人工处理或修订编号方案")
     return f"F-{cls_upper}-{hi + 1:03d}"
 
 
@@ -113,11 +117,15 @@ def validate_card(base: Path, card: Path) -> list[str]:
         cls_expected = m.group(1).lower()
         if fields.get("class") != cls_expected:
             errors.append(f"class 字段({fields.get('class')})与 id 前缀({m.group(1)})不一致")
+        if iid != card.stem:
+            errors.append(f"文件名与 id 不一致:{card.stem} ↔ {iid}")
     if not _ID_RE.match(card.stem):
         errors.append(f"文件名非编号格式:{fname}(应为 F-<CLASS>-<nnn>.md)")
     cls = fields.get("class")
     if cls and cls not in CARD_CLASSES:
         errors.append(f"class 非法:{cls}")
+    if cls and card.parent.name != cls:
+        errors.append(f"目录与 class 不一致:{card.parent.name} ↔ {cls}")
     st = fields.get("status")
     if st and st not in STATUSES:
         errors.append(f"status 非法:{st}(应为 {sorted(STATUSES)})")
@@ -137,13 +145,15 @@ def validate_all(base: Path) -> list[tuple[Path, list[str]]]:
     results = []
     for p in cards:
         errs = validate_card(base, p)
-        m = _ID_RE.match(p.stem)
-        if m:
-            iid = p.stem
-            if iid in seen:
-                errs.append(f"id 重复:{iid}(与 {seen[iid].relative_to(base)} 冲突)")
-            else:
-                seen[iid] = p
+        fields, _ = parse_frontmatter(p.read_text(encoding="utf-8"))
+        if fields and _ID_RE.match(fields.get("id", "") or ""):
+            key = fields["id"]
+        else:
+            key = p.stem
+        if key in seen:
+            errs.append(f"id 重复:{key}(与 {seen[key].relative_to(base)} 冲突)")
+        else:
+            seen[key] = p
         results.append((p, errs))
     return results
 
@@ -165,7 +175,7 @@ def build_index(base: Path) -> str:
         markets = ", ".join(fields.get("markets", []) or [])
         rows.append((p.name,
                      "| {id} | {cls} | {title} | {st} | {mk} | {src} |".format(
-                         id=p.name, cls=fields.get("class", ""), title=esc(fields.get("title", "")),
+                         id=fields.get("id") or p.stem, cls=fields.get("class", ""), title=esc(fields.get("title", "")),
                          st=fields.get("status", ""), mk=esc(markets), src=esc(fields.get("source", "")))))
     rows.sort()
     lines = [
@@ -216,7 +226,13 @@ def main(argv=None):
         _cmd_new(base, args)
     elif args.cmd == "validate":
         if args.paths:
-            files = [Path(a) for a in args.paths]
+            files = []
+            for a in args.paths:
+                pa = Path(a)
+                if not pa.is_file():
+                    print(f"找不到文件:{a}")
+                    sys.exit(1)
+                files.append(pa)
             failed = [(p, validate_card(base, p)) for p in files]
             failed = [(p, errs) for p, errs in failed if errs]
         else:

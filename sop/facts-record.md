@@ -32,5 +32,6 @@
 ## 纪律
 
 - 编号由工具生成,人工不写死;作废卡改 `status: obsolete` 不删文件不重号。
+- frontmatter 用 LF 换行、勿带行尾注释;编号由工具生成,勿手写/手抄(文件名 stem、`id`、所在目录 class 三者须一致)。
 - 只有 `approved` 卡被正文引用;`obsolete` 停用。更新卡内容后必须重跑核验(改 `reviewed_at`)。
 - 本 SOP 随卡片量增长可演进(如批量录入),但 schema 变更须回 G2 spec 评审后再改。

@@ -40,6 +40,13 @@ class TestNextId(unittest.TestCase):
         (d / "F-PRODUCT-002.md").write_text("---\nid: F-PRODUCT-002\n---\n", encoding="utf-8")
         self.assertEqual(ft.next_id(base, "product"), "F-PRODUCT-003")
 
+    def test_next_id_raises_when_class_reaches_999(self):
+        base = make_tree()
+        d = base / "content/facts/product"; d.mkdir(parents=True)
+        (d / "F-PRODUCT-999.md").write_text("---\nid: F-PRODUCT-999\n---\n", encoding="utf-8")
+        with self.assertRaises(RuntimeError):
+            ft.next_id(base, "product")
+
     def test_ignores_non_cards(self):
         base = make_tree()
         (base / "content/facts/_template.md").write_text("x", encoding="utf-8")
@@ -150,6 +157,29 @@ class TestValidate(unittest.TestCase):
         results = ft.validate_all(base)
         self.assertTrue(any("重复" in e for _p, errs in results for e in errs))
 
+    def test_filename_mismatch_with_content_id_fails(self):
+        base = make_tree()
+        body = VALID.replace("id: F-PRODUCT-001", "id: F-PRODUCT-002")
+        p = write_card(base, "product", "F-PRODUCT-001.md", body)
+        errs = ft.validate_card(base, p)
+        self.assertTrue(any("文件名" in e and "不一致" in e for e in errs))
+
+    def test_directory_mismatch_with_class_fails(self):
+        base = make_tree()
+        body = VALID.replace("id: F-PRODUCT-001", "id: F-CERTIFICATION-001").replace(
+            "class: product", "class: certification")
+        p = write_card(base, "product", "F-CERTIFICATION-001.md", body)
+        errs = ft.validate_card(base, p)
+        self.assertTrue(any("目录" in e and "不一致" in e for e in errs))
+
+    def test_same_content_id_across_filenames_flagged_duplicate(self):
+        base = make_tree()
+        write_card(base, "product", "F-PRODUCT-001.md", VALID)
+        dup = VALID.replace("title: 柜 100kW", "title: 同 id 另一张")
+        write_card(base, "product", "F-PRODUCT-002.md", dup)
+        results = ft.validate_all(base)
+        self.assertTrue(any("重复" in e for _p, errs in results for e in errs))
+
 
 class TestIndexSearch(unittest.TestCase):
     def test_index_lists_cards_sorted_with_fields(self):
@@ -160,16 +190,39 @@ class TestIndexSearch(unittest.TestCase):
         self.assertIn("product", idx)
         self.assertLess(idx.index("F-PRODUCT-001"), idx.index("| product |"))
 
-    def test_index_excludes_template(self):
+    def test_index_id_column_uses_content_id_without_md(self):
         base = make_tree()
         write_card(base, "product", "F-PRODUCT-001.md", VALID)
-        self.assertNotIn("_template", ft.build_index(base))
+        idx = ft.build_index(base)
+        rows = [l for l in idx.splitlines() if l.startswith("| F-")]
+        self.assertEqual(len(rows), 1)
+        self.assertTrue(rows[0].startswith("| F-PRODUCT-001 |"))
+        self.assertNotIn(".md", rows[0])
+
+    def test_index_excludes_template(self):
+        base = make_tree()
+        (base / "content/facts/_template.md").write_text(ft.DEFAULT_TEMPLATE, encoding="utf-8")
+        write_card(base, "product", "F-PRODUCT-001.md", VALID)
+        idx = ft.build_index(base)
+        self.assertNotIn("_template", idx)
+        self.assertNotIn("F-CLASS-000", idx)
 
     def test_search_matches_title_and_body_ci(self):
         base = make_tree()
         write_card(base, "product", "F-PRODUCT-001.md", VALID)
         self.assertTrue(any("F-PRODUCT-001" in p for p, _ in ft.search_cards(base, "100KW")))
         self.assertTrue(any("F-PRODUCT-001" in p for p, _ in ft.search_cards(base, "柜")))
+
+    def test_search_matches_zh_body_with_truncated_snippet(self):
+        base = make_tree()
+        write_card(base, "product", "F-PRODUCT-001.md", VALID)
+        hits = ft.search_cards(base, "额定功率")
+        matched = [(p, s) for p, s in hits if "F-PRODUCT-001" in p]
+        self.assertTrue(matched, "正文命中 zh 段应有结果")
+        for _p, snippet in matched:
+            self.assertLessEqual(len(snippet), 60)
+            self.assertTrue(snippet.startswith("额定功率"))
+            self.assertEqual(snippet, "额定功率 100kW。")
 
     def test_search_no_match_empty(self):
         base = make_tree()
@@ -183,7 +236,9 @@ class TestEndToEnd(unittest.TestCase):
         p = ft.create_card(base, "product")           # step1 new:content/facts/product/F-PRODUCT-001.md
         p.write_text(VALID, encoding="utf-8")         # step2 填(zh/en/source/reviewer/status)
         self.assertEqual(ft.validate_card(base, p), [])   # step3a 校验通过
-        self.assertIn(p.name, ft.build_index(base))       # step3b 入索引,可检索
+        idx = ft.build_index(base)
+        self.assertIn(p.stem, idx)                        # step3b 入索引(按内容 id,不带 .md),可检索
+        self.assertNotIn(p.name, idx)                     # 索引 id 列不再带 .md
 
 
 if __name__ == "__main__":
