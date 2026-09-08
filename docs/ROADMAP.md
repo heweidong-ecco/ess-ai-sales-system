@@ -9,10 +9,9 @@
 
 ## 当前指针
 
-- P0 `G1 现状盘点` ✔(默认入档,遗留 O1~O6 见 `docs/discovery/2026-09-08-g1-inventory.md`)
-- P0 `G3 分层决策` ✔(默认入档:DEC-003 分层定稿 + DEC-004 技术选型)
-- P0 `G2 三资产模型起步` ✔(默认入档:G2 spec 事实卡 schema+知识边界 + 数据源登记活文档)
-- **下一步**:P0 基建清。待业务方供 G1-O3/O4(在售主力产品线+认证、素材样例)后开 L1 M1.1(素材盘点)→ M1.3 首批卡;M1.2(录入模板+工具)依赖 spec C1+G2 schema,**不待业务事实可先行**
+- P0 `G1/G2/G3` 全 ✔(基建清;O1~O6 遗留待公司见 `docs/discovery/2026-09-08-g1-inventory.md`)
+- L1 `M1.2 事实卡录入工具` ✔(facts_tool:new/validate/index/search + 模板 + SOP,28 测试;branch l1-m1.2 merged → main)
+- **下一步**:L1 `M2.1 选题卡+SEO 关键词表`(不阻塞,可直接吸收研究附录 A1 的 T1~T8);M1.1(素材盘点)/M1.3(首批≥30 卡)仍待业务方供 G1-O3/O4(在售主力产品线+认证、素材样例)
 - 节点完成即改状态列 + commit + 更新 CLAUDE.md 当前指针(见 CLAUDE.md 接续协议)
 
 ## 依赖概览
@@ -47,7 +46,7 @@ L5 赋能 = 全程横切,随各闭环沉淀
 |---|---|---|---|---|---|---|
 | L1-spec | L1.1 spec v0.1 | spec 文件 | 已过业务评审(1/2/3 点意见接受) | 总纲 | spec ✔ | ✔ |
 | M1.1 | 素材盘点与分类 | 素材清单+缺口(首批:在售主力产品线+认证) | 列出 ≥3 主力产品线与全部认证 | G1 | br→spec | ⬜ |
-| M1.2 | 事实卡片模型+录入工具 | Facts schema 落地、模板、录入流程 | 1 张卡 < 3 步录完,可检索 | spec C1 | spec→plan→build | ⬜ |
+| M1.2 | 事实卡片模型+录入工具 | Facts schema 落地、模板、录入流程 | 1 张卡 < 3 步录完,可检索 | spec C1 | spec→plan→build | ✔ |
 | M1.3 | 首批事实卡 ≥30 张 | content/facts/ | spec §8 第一条 | M1.1+M1.2 | build | ⬜ |
 | M2.1 | 选题卡模型 + SEO 关键词表 | brief.md 模板、keywords/ | 可由"人设+市场+意图"生成选题 | spec | spec→plan→build | ⬜ |
 | M2.2 | 4 类渠道模板 | 博客/LinkedIn/阿里详情页/短视频脚本 模板 | 模板可被 SOP 直接调用产出草稿 | M1.3 | spec→plan→build | ⬜ |
