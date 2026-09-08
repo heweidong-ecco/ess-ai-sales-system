@@ -92,6 +92,62 @@ def create_card(base: Path, cls: str) -> Path:
     return p
 
 
+def validate_card(base: Path, card: Path) -> list[str]:
+    errors = []
+    text = card.read_text(encoding="utf-8")
+    fields, body = parse_frontmatter(text)
+    if fields is None:
+        return ["无 YAML frontmatter(需 --- ... ---)"]
+    fname = card.name
+    for f in REQUIRED:
+        v = fields.get(f, "")
+        if isinstance(v, list) and not v:
+            errors.append(f"必填字段缺值:{f}")
+        elif isinstance(v, str) and not v.strip():
+            errors.append(f"必填字段缺值:{f}")
+    iid = fields.get("id", "") or ""
+    m = _ID_RE.match(iid)
+    if not m:
+        errors.append(f"id 非法:{iid}(应为 F-<CLASS>-<nnn>)")
+    else:
+        cls_expected = m.group(1).lower()
+        if fields.get("class") != cls_expected:
+            errors.append(f"class 字段({fields.get('class')})与 id 前缀({m.group(1)})不一致")
+    if not _ID_RE.match(card.stem):
+        errors.append(f"文件名非编号格式:{fname}(应为 F-<CLASS>-<nnn>.md)")
+    cls = fields.get("class")
+    if cls and cls not in CARD_CLASSES:
+        errors.append(f"class 非法:{cls}")
+    st = fields.get("status")
+    if st and st not in STATUSES:
+        errors.append(f"status 非法:{st}(应为 {sorted(STATUSES)})")
+    if st == "approved":
+        if not (fields.get("reviewer") or "").strip():
+            errors.append("approved 状态缺 reviewer(必填)")
+        if not (fields.get("reviewed_at") or "").strip():
+            errors.append("approved 状态缺 reviewed_at(必填)")
+    if not re.search(r"^##\s+zh\s*$", body, re.M):
+        errors.append("正文缺 `## zh` 节")
+    return sorted(set(errors))
+
+
+def validate_all(base: Path) -> list[tuple[Path, list[str]]]:
+    cards = list_cards(base)
+    seen = {}
+    results = []
+    for p in cards:
+        errs = validate_card(base, p)
+        m = _ID_RE.match(p.stem)
+        if m:
+            iid = p.stem
+            if iid in seen:
+                errs.append(f"id 重复:{iid}(与 {seen[iid].relative_to(base)} 冲突)")
+            else:
+                seen[iid] = p
+        results.append((p, errs))
+    return results
+
+
 def _cmd_new(base, args):
     p = create_card(base, args.cls)
     print(f"已建:{p.relative_to(base)}")
@@ -101,11 +157,13 @@ def _cmd_new(base, args):
 
 def main(argv=None):
     import argparse
+    import sys
     parser = argparse.ArgumentParser(prog="facts_tool", description="事实卡录入/校验/索引工具")
     sub = parser.add_subparsers(dest="cmd", required=True)
     p_new = sub.add_parser("new", help="按类别新建一张卡")
     p_new.add_argument("cls", choices=sorted(CARD_CLASSES))
-    sub.add_parser("validate", help="校验卡片(默认全部)")
+    p_val = sub.add_parser("validate", help="校验卡片(默认全部)")
+    p_val.add_argument("paths", nargs="*", help="可选:一个或多个卡片文件路径")
     sub.add_parser("index", help="重建 content/facts/_index.md")
     p_search = sub.add_parser("search", help="检索")
     p_search.add_argument("term")
@@ -113,6 +171,22 @@ def main(argv=None):
     base = Path(__file__).resolve().parent.parent
     if args.cmd == "new":
         _cmd_new(base, args)
+    elif args.cmd == "validate":
+        if args.paths:
+            files = [Path(a) for a in args.paths]
+            failed = [(p, validate_card(base, p)) for p in files]
+            failed = [(p, errs) for p, errs in failed if errs]
+        else:
+            failed = [(p, errs) for p, errs in validate_all(base) if errs]
+            ok = len(list_cards(base)) - len(failed)
+        if failed:
+            for p, errs in failed:
+                print(f"[FAIL] {p}")
+                for e in errs:
+                    print(f"   - {e}")
+            sys.exit(1)
+        else:
+            print(f"全部通过({ok} 张)" if not args.paths else f"通过:{len(files)} 张")
 
 
 if __name__ == "__main__":

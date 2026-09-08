@@ -79,5 +79,77 @@ class TestCreateCard(unittest.TestCase):
             ft.create_card(base, "nope")
 
 
+def write_card(base, cls, name, body):
+    d = base / "content/facts" / cls
+    d.mkdir(parents=True, exist_ok=True)
+    p = d / name
+    p.write_text(body, encoding="utf-8")
+    return p
+
+
+VALID = """---
+id: F-PRODUCT-001
+class: product
+title: 柜 100kW
+status: approved
+reviewer: 张
+reviewed_at: 2026-09-01
+markets: [EN, DE]
+source: 手册 p5
+---
+## zh
+额定功率 100kW。
+
+## en
+Rated 100 kW.
+"""
+
+
+class TestValidate(unittest.TestCase):
+    def test_valid_approved_card_ok(self):
+        base = make_tree()
+        p = write_card(base, "product", "F-PRODUCT-001.md", VALID)
+        self.assertEqual(ft.validate_card(base, p), [])
+
+    def test_missing_required_source_fails(self):
+        base = make_tree()
+        body = VALID.replace("source: 手册 p5\n", "")
+        p = write_card(base, "product", "F-PRODUCT-001.md", body)
+        errs = ft.validate_card(base, p)
+        self.assertTrue(any("source" in e for e in errs))
+
+    def test_bad_id_format_fails(self):
+        base = make_tree()
+        p = write_card(base, "product", "F-PRODUCT-001.md", VALID.replace("F-PRODUCT-001", "bad-id"))
+        self.assertTrue(any("id" in e for e in ft.validate_card(base, p)))
+
+    def test_approved_requires_reviewer_and_date(self):
+        base = make_tree()
+        body = VALID.replace("reviewer: 张\nreviewed_at: 2026-09-01\n", "")
+        p = write_card(base, "product", "F-PRODUCT-001.md", body)
+        errs = ft.validate_card(base, p)
+        self.assertTrue(any("approved" in e and "reviewer" in e for e in errs))
+
+    def test_missing_zh_section_fails(self):
+        base = make_tree()
+        body = VALID.split("## zh")[0]
+        p = write_card(base, "product", "F-PRODUCT-001.md", body)
+        self.assertTrue(any("zh" in e for e in ft.validate_card(base, p)))
+
+    def test_class_mismatch_with_id_fails(self):
+        base = make_tree()
+        body = VALID.replace("id: F-PRODUCT-001", "id: F-CERTIFICATION-001")
+        p = write_card(base, "product", "F-PRODUCT-001.md", body)
+        self.assertTrue(any("class" in e for e in ft.validate_card(base, p)))
+
+    def test_duplicate_ids_detected_globally(self):
+        base = make_tree()
+        write_card(base, "product", "F-PRODUCT-001.md", VALID)
+        dup = VALID.replace("class: product\ntitle: 柜 100kW", "class: company\ntitle: 公司资质")
+        write_card(base, "company", "F-PRODUCT-001.md", dup)
+        results = ft.validate_all(base)
+        self.assertTrue(any("重复" in e for _p, errs in results for e in errs))
+
+
 if __name__ == "__main__":
     unittest.main()
