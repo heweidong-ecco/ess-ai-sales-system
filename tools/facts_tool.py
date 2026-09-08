@@ -52,3 +52,68 @@ def next_id(base: Path, cls: str) -> str:
         if m and m.group(1) == cls_upper:
             hi = max(hi, int(m.group(2)))
     return f"F-{cls_upper}-{hi + 1:03d}"
+
+
+DEFAULT_TEMPLATE = """---
+id: F-CLASS-000
+class: class
+title: ""
+status: draft
+reviewer: ""
+reviewed_at: ""
+markets: []
+keywords: []
+source: ""
+glossary_terms: []
+related_facts: []
+---
+## zh
+(源语事实内容,默认中文,主源)
+
+## en
+(已核验英文译文)
+
+## de
+(按需;无则删除本小节)
+"""
+
+
+def create_card(base: Path, cls: str) -> Path:
+    nid = next_id(base, cls)
+    facts = facts_dir_for(base)
+    tpl = facts / "_template.md"
+    text = tpl.read_text(encoding="utf-8") if tpl.exists() else DEFAULT_TEMPLATE
+    text = re.sub(r"^id: .*$", f"id: {nid}", text, count=1, flags=re.M)
+    text = re.sub(r"^class: .*$", f"class: {cls}", text, count=1, flags=re.M)
+    d = facts / cls
+    d.mkdir(parents=True, exist_ok=True)
+    p = d / f"{nid}.md"
+    p.write_text(text, encoding="utf-8")
+    return p
+
+
+def _cmd_new(base, args):
+    p = create_card(base, args.cls)
+    print(f"已建:{p.relative_to(base)}")
+    print("三步录入:1) 填 frontmatter 与正文(必填 id/class/title/source;approved 需 reviewer) "
+          "2) 补 zh/en(+de) 3) 校验:`python3 tools/facts_tool.py validate <该文件>`")
+
+
+def main(argv=None):
+    import argparse
+    parser = argparse.ArgumentParser(prog="facts_tool", description="事实卡录入/校验/索引工具")
+    sub = parser.add_subparsers(dest="cmd", required=True)
+    p_new = sub.add_parser("new", help="按类别新建一张卡")
+    p_new.add_argument("cls", choices=sorted(CARD_CLASSES))
+    sub.add_parser("validate", help="校验卡片(默认全部)")
+    sub.add_parser("index", help="重建 content/facts/_index.md")
+    p_search = sub.add_parser("search", help="检索")
+    p_search.add_argument("term")
+    args = parser.parse_args(argv)
+    base = Path(__file__).resolve().parent.parent
+    if args.cmd == "new":
+        _cmd_new(base, args)
+
+
+if __name__ == "__main__":
+    main()

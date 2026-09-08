@@ -57,5 +57,27 @@ class TestListCards(unittest.TestCase):
         self.assertEqual(names, ["F-COMPANY-001.md", "F-COMPANY-002.md"])
 
 
+class TestCreateCard(unittest.TestCase):
+    def test_create_writes_card_under_class_dir(self):
+        base = make_tree()
+        p = ft.create_card(base, "product")
+        self.assertEqual(p.name, "F-PRODUCT-001.md")
+        self.assertEqual(p.parent, base / "content/facts/product")
+        text = p.read_text(encoding="utf-8")
+        self.assertIn("id: F-PRODUCT-001", text)
+        self.assertIn("class: product", text)
+
+    def test_create_second_card_increments(self):
+        base = make_tree()
+        ft.create_card(base, "certification")
+        p2 = ft.create_card(base, "certification")
+        self.assertEqual(p2.name, "F-CERTIFICATION-002.md")
+
+    def test_create_rejects_unknown_class(self):
+        base = make_tree()
+        with self.assertRaises(ValueError):
+            ft.create_card(base, "nope")
+
+
 if __name__ == "__main__":
     unittest.main()
