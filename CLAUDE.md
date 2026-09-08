@@ -46,6 +46,7 @@
 
 ## 当前指针(随推进更新 — 上次更新 2026-09-08)
 
-- 分支:`main`(总纲/L1 spec/主执行图已合一)
-- 进度:总纲 ✔ → L1 spec v0.1 ✔(待 writing-plans)→ 主执行图 docs/ROADMAP.md 本次定稿
-- **下一个动作**:详读 `docs/ROADMAP.md` → 进入首个 in_progress/下一个 ⬜ 节点
+- 分支:`main`
+- 进度:总纲 ✔ → L1 spec ✔(待 writing-plans)→ 主执行图 ✔ → 决策 DEC-001/002 ✔
+- **进行中**:P0 `G1 现状与对接盘点`(brainstorm 收口 → `docs/discovery/2026-09-08-g1-inventory.md`)
+- **下一步(G1 完成后)**:G3 分层决策 → L1 M1.1
