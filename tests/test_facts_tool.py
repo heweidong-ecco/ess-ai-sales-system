@@ -151,5 +151,31 @@ class TestValidate(unittest.TestCase):
         self.assertTrue(any("重复" in e for _p, errs in results for e in errs))
 
 
+class TestIndexSearch(unittest.TestCase):
+    def test_index_lists_cards_sorted_with_fields(self):
+        base = make_tree()
+        write_card(base, "product", "F-PRODUCT-001.md", VALID)
+        idx = ft.build_index(base)
+        self.assertIn("F-PRODUCT-001", idx)
+        self.assertIn("product", idx)
+        self.assertLess(idx.index("F-PRODUCT-001"), idx.index("| product |"))
+
+    def test_index_excludes_template(self):
+        base = make_tree()
+        write_card(base, "product", "F-PRODUCT-001.md", VALID)
+        self.assertNotIn("_template", ft.build_index(base))
+
+    def test_search_matches_title_and_body_ci(self):
+        base = make_tree()
+        write_card(base, "product", "F-PRODUCT-001.md", VALID)
+        self.assertTrue(any("F-PRODUCT-001" in p for p, _ in ft.search_cards(base, "100KW")))
+        self.assertTrue(any("F-PRODUCT-001" in p for p, _ in ft.search_cards(base, "柜")))
+
+    def test_search_no_match_empty(self):
+        base = make_tree()
+        write_card(base, "product", "F-PRODUCT-001.md", VALID)
+        self.assertEqual(ft.search_cards(base, "qqqnotexist"), [])
+
+
 if __name__ == "__main__":
     unittest.main()
