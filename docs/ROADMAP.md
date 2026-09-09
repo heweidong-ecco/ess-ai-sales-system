@@ -11,7 +11,8 @@
 
 - P0 `G1/G2/G3` 全 ✔(基建清;O1~O6 遗留待公司见 `docs/discovery/2026-09-08-g1-inventory.md`)
 - L1 `M1.2 事实卡录入工具` ✔(facts_tool:new/validate/index/search + 模板 + SOP,28 测试;branch l1-m1.2 merged → main)
-- **下一步**:L1 `M2.1 选题卡+SEO 关键词表`(不阻塞,可直接吸收研究附录 A1 的 T1~T8);M1.1(素材盘点)/M1.3(首批≥30 卡)仍待业务方供 G1-O3/O4(在售主力产品线+认证、素材样例)
+- L1 `M2.1 选题卡+SEO 关键词表` ✔(brief 模板 + keywords schema/首批种子 + 生成 SOP;纯文档,commit 098382f)
+- **下一步**:L1 无阻塞节点已尽(工具/模板/选题体系齐)。`M1.1 素材盘点`/`M1.3 首批卡`/`M2.2 渠道模板(依赖 M1.3)` 均待业务方供 G1-O3/O4(在售主力产品线+认证、素材样例)→ 素材到位即开 M1.1
 - 节点完成即改状态列 + commit + 更新 CLAUDE.md 当前指针(见 CLAUDE.md 接续协议)
 
 ## 依赖概览
@@ -48,7 +49,7 @@ L5 赋能 = 全程横切,随各闭环沉淀
 | M1.1 | 素材盘点与分类 | 素材清单+缺口(首批:在售主力产品线+认证) | 列出 ≥3 主力产品线与全部认证 | G1 | br→spec | ⬜ |
 | M1.2 | 事实卡片模型+录入工具 | Facts schema 落地、模板、录入流程 | 1 张卡 < 3 步录完,可检索 | spec C1 | spec→plan→build | ✔ |
 | M1.3 | 首批事实卡 ≥30 张 | content/facts/ | spec §8 第一条 | M1.1+M1.2 | build | ⬜ |
-| M2.1 | 选题卡模型 + SEO 关键词表 | brief.md 模板、keywords/ | 可由"人设+市场+意图"生成选题 | spec | spec→plan→build | ⬜ |
+| M2.1 | 选题卡模型 + SEO 关键词表 | brief.md 模板、keywords/ | 可由"人设+市场+意图"生成选题 | spec | spec→plan→build | ✔ |
 | M2.2 | 4 类渠道模板 | 博客/LinkedIn/阿里详情页/短视频脚本 模板 | 模板可被 SOP 直接调用产出草稿 | M1.3 | spec→plan→build | ⬜ |
 | M2.3 | 多语言译制流程(EN 主稿→DE) | 术语表 + 译制+人工终校步骤 | 术语一致性校验通过 | M2.2 | plan→build | ⬜ |
 | M3.1 | 人审发布台状态流+看板 | content/tracker.md | 草稿→审校→待发→已发 状态可见 | M2.2 | spec→plan→build | ⬜ |
