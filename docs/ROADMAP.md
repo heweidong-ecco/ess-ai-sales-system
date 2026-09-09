@@ -12,7 +12,7 @@
 - P0 `G1/G2/G3` 全 ✔(基建清;O1~O6 遗留待公司见 `docs/discovery/2026-09-08-g1-inventory.md`)
 - L1 `M1.2 事实卡录入工具` ✔(facts_tool:new/validate/index/search + 模板 + SOP,28 测试;branch l1-m1.2 merged → main)
 - L1 `M2.1 选题卡+SEO 关键词表` ✔(brief 模板 + keywords schema/首批种子 + 生成 SOP;纯文档,commit 098382f)
-- **DEMO 全链路演示跑通**(虚构厂商 MiraSol,数据全标 demo,commit e8a3c73/80d7aee/99c8206/59d255e):M1.1 素材登记(`content/demo-kit.md`+虚构 sources)、M1.3 演示事实卡 34 张(validate 通过+索引)、M2.2 四类渠道模板+同一主题变体(linkedin/video-script)、M2.3 译制演示(`content/glossary` 术语表 + draft.de)、L1-MVP 单主题端到端切片(brief→blog 成稿→发布记录)。**均为演示,非生产验收**
+- **DEMO 全链路演示跑通**(虚构厂商 MiraSol,数据全标 demo;见 `docs/DEMO-交付说明.md`):M1.1 素材登记、M1.3 演示事实卡 34 张(validate 通过)、M2.2 四类渠道模板+变体、M2.3 译制(术语表+draft.de)、L1-MVP 单题端到端切片、M3.1 人审看板(`content/tracker.md`)、M4.1 回流(`content/reflux/` 模板+演示周报)。**均为演示,非生产验收**
 - **下一步**:L1 **生产**节点 M1.1/M1.3/M2.2/L1-MVP 仍待业务方供 G1-O3/O4(真实在售主力产品线+认证、素材样例)→ 素材到位即以真实数据重跑(工具/模板已就绪)
 - 节点完成即改状态列 + commit + 更新 CLAUDE.md 当前指针(见 CLAUDE.md 接续协议)
 
