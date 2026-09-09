@@ -12,7 +12,8 @@
 - P0 `G1/G2/G3` 全 ✔(基建清;O1~O6 遗留待公司见 `docs/discovery/2026-09-08-g1-inventory.md`)
 - L1 `M1.2 事实卡录入工具` ✔(facts_tool:new/validate/index/search + 模板 + SOP,28 测试;branch l1-m1.2 merged → main)
 - L1 `M2.1 选题卡+SEO 关键词表` ✔(brief 模板 + keywords schema/首批种子 + 生成 SOP;纯文档,commit 098382f)
-- **下一步**:L1 无阻塞节点已尽(工具/模板/选题体系齐)。`M1.1 素材盘点`/`M1.3 首批卡`/`M2.2 渠道模板(依赖 M1.3)` 均待业务方供 G1-O3/O4(在售主力产品线+认证、素材样例)→ 素材到位即开 M1.1
+- **DEMO 全链路演示跑通**(虚构厂商 MiraSol,数据全标 demo,commit e8a3c73/80d7aee/99c8206):M1.1 素材登记(`content/demo-kit.md`+虚构 sources)、M1.3 演示事实卡 34 张(`facts_tool validate` 通过+索引)、M2.2 四类渠道模板、L1-MVP 单主题端到端切片(选题卡→blog 成稿→发布记录)。**均为演示,非生产验收**
+- **下一步**:L1 **生产**节点 M1.1/M1.3/M2.2/L1-MVP 仍待业务方供 G1-O3/O4(真实在售主力产品线+认证、素材样例)→ 素材到位即以真实数据重跑(工具/模板已就绪)
 - 节点完成即改状态列 + commit + 更新 CLAUDE.md 当前指针(见 CLAUDE.md 接续协议)
 
 ## 依赖概览
